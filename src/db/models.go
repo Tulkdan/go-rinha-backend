@@ -9,9 +9,9 @@ import (
 )
 
 type Person struct {
-	ID        string
+	ID        pgtype.UUID
 	Name      pgtype.Text
 	Nickname  pgtype.Text
-	Birthdate interface{}
-	Stacks    []byte
+	Birthdate pgtype.Timestamp
+	Stacks    []string
 }

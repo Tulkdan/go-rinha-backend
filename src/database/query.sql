@@ -5,8 +5,8 @@ WHERE id = $1
 LIMIT 1;
 
 -- name: CreatePerson :one
-INSERT INTO people (name, nickname, birthdate, stacks)
-VALUES ($1, $2, $3, $4)
+INSERT INTO people (id, name, nickname, birthdate, stacks)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: SearchPerson :many

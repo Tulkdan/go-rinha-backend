@@ -24,20 +24,22 @@ func (q *Queries) CountAllPeople(ctx context.Context) (int64, error) {
 }
 
 const createPerson = `-- name: CreatePerson :one
-INSERT INTO people (name, nickname, birthdate, stacks)
-VALUES ($1, $2, $3, $4)
+INSERT INTO people (id, name, nickname, birthdate, stacks)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id, name, nickname, birthdate, stacks
 `
 
 type CreatePersonParams struct {
+	ID        pgtype.UUID
 	Name      pgtype.Text
 	Nickname  pgtype.Text
-	Birthdate interface{}
-	Stacks    []byte
+	Birthdate pgtype.Timestamp
+	Stacks    []string
 }
 
 func (q *Queries) CreatePerson(ctx context.Context, arg CreatePersonParams) (Person, error) {
 	row := q.db.QueryRow(ctx, createPerson,
+		arg.ID,
 		arg.Name,
 		arg.Nickname,
 		arg.Birthdate,
@@ -61,7 +63,7 @@ WHERE id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetPerson(ctx context.Context, id string) (Person, error) {
+func (q *Queries) GetPerson(ctx context.Context, id pgtype.UUID) (Person, error) {
 	row := q.db.QueryRow(ctx, getPerson, id)
 	var i Person
 	err := row.Scan(
