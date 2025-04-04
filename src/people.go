@@ -1,20 +1,20 @@
 package src
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/Tulkdan/go-rinha-backend/src/db"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var jsonContentType = "application/json"
 
-var ErrIdNotFound = fmt.Errorf("ID not found")
+var ErrIdFailedToParse = fmt.Errorf("ID failed to parse")
+var ErrUserNotFound = fmt.Errorf("User not found")
 var ErrInsertPerson = fmt.Errorf("Error inserting person")
 
 type httpServer struct {
@@ -27,11 +27,16 @@ func NewPeopleRouter(db *db.Queries) *httpServer {
 
 func (h *httpServer) HandleGet(w http.ResponseWriter, req *http.Request) {
 	id := req.PathValue("id")
+	ID, err := uuid.Parse(id)
+	if err != nil {
+		http.Error(w, ErrIdFailedToParse.Error(), http.StatusBadRequest)
+		return
+	}
 
-	person, err := h.db.GetPerson(req.Context(), id)
+	person, err := h.db.GetPerson(req.Context(), pgtype.UUID{Bytes: ID, Valid: true})
 	if err != nil {
 		fmt.Printf("Error getting person %s\n", err)
-		http.Error(w, ErrIdNotFound.Error(), http.StatusBadRequest)
+		http.Error(w, ErrUserNotFound.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -57,15 +62,18 @@ func (h *httpServer) HandlePost(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	buf := &bytes.Buffer{}
-	gob.NewEncoder(buf).Encode(newPerson.Stack)
+	id, err := uuid.NewV7()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	person, err := h.db.CreatePerson(req.Context(), db.CreatePersonParams{
-		Name:      pgtype.Text{String: newPerson.Name},
-		Nickname:  pgtype.Text{String: newPerson.Nickname},
-		Birthdate: pgtype.Timestamp{Time: newPerson.Birthdate},
-		Stacks:    buf.Bytes(),
+		ID:        pgtype.UUID{Bytes: id, Valid: true},
+		Name:      pgtype.Text{String: newPerson.Name, Valid: true},
+		Nickname:  pgtype.Text{String: newPerson.Nickname, Valid: true},
+		Birthdate: pgtype.Timestamp{Time: newPerson.Birthdate, Valid: true},
+		Stacks:    newPerson.Stack,
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -73,5 +81,5 @@ func (h *httpServer) HandlePost(w http.ResponseWriter, req *http.Request) {
 	}
 
 	w.Header().Set("Content-type", jsonContentType)
-	json.NewEncoder(w).Encode(IDDocument{Id: person.ID})
+	json.NewEncoder(w).Encode(IDDocument{Id: person.ID.String()})
 }
