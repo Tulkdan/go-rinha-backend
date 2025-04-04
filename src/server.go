@@ -8,7 +8,7 @@ import (
 )
 
 func NewHTTPServer(addr string, ctx context.Context, db *db.Queries) *http.Server {
-	server := NewPeopleRouter(ctx, db)
+	server := NewPeopleRouter(db)
 
 	r := &http.ServeMux{}
 	r.HandleFunc("GET /pessoas/{id}", server.HandleGet)

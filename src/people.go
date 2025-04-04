@@ -2,7 +2,6 @@ package src
 
 import (
 	"bytes"
-	"context"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -19,21 +18,17 @@ var ErrIdNotFound = fmt.Errorf("ID not found")
 var ErrInsertPerson = fmt.Errorf("Error inserting person")
 
 type httpServer struct {
-	ctx context.Context
-	db  *db.Queries
+	db *db.Queries
 }
 
-func NewPeopleRouter(ctx context.Context, db *db.Queries) *httpServer {
-	return &httpServer{
-		ctx: ctx,
-		db:  db,
-	}
+func NewPeopleRouter(db *db.Queries) *httpServer {
+	return &httpServer{db: db}
 }
 
 func (h *httpServer) HandleGet(w http.ResponseWriter, req *http.Request) {
 	id := req.PathValue("id")
 
-	person, err := h.db.GetPerson(h.ctx, id)
+	person, err := h.db.GetPerson(req.Context(), id)
 	if err != nil {
 		fmt.Printf("Error getting person %s\n", err)
 		http.Error(w, ErrIdNotFound.Error(), http.StatusBadRequest)
@@ -66,7 +61,7 @@ func (h *httpServer) HandlePost(w http.ResponseWriter, req *http.Request) {
 	buf := &bytes.Buffer{}
 	gob.NewEncoder(buf).Encode(newPerson.Stack)
 
-	person, err := h.db.CreatePerson(h.ctx, db.CreatePersonParams{
+	person, err := h.db.CreatePerson(req.Context(), db.CreatePersonParams{
 		Name:      pgtype.Text{String: newPerson.Name},
 		Nickname:  pgtype.Text{String: newPerson.Nickname},
 		Birthdate: pgtype.Timestamp{Time: newPerson.Birthdate},
