@@ -15,6 +15,7 @@ func NewHTTPServer(addr string, ctx context.Context, db *db.Queries) *http.Serve
 	r.HandleFunc("GET /pessoas/{id}", server.HandleGet)
 	r.HandleFunc("POST /pessoas", server.HandlePost)
 	r.HandleFunc("GET /pessoas", server.HandleSearch)
+	r.HandleFunc("GET /contagem-pessoas", server.HandleCountPeople)
 
 	return &http.Server{
 		Addr:    addr,

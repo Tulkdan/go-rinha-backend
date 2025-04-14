@@ -35,3 +35,11 @@ func FromPerson(input *domain.Person) *PersonOutput {
 		Stack:     input.Stack,
 	}
 }
+
+type PeopleCountOutput struct {
+	Dount int64 `json:"count"`
+}
+
+func FromPeopleCount(input int64) *PeopleCountOutput {
+	return &PeopleCountOutput{Dount: input}
+}

@@ -87,3 +87,13 @@ func (h *httpServer) HandleSearch(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-type", jsonContentType)
 	json.NewEncoder(w).Encode(people)
 }
+
+func (h *httpServer) HandleCountPeople(w http.ResponseWriter, req *http.Request) {
+	peopleCount, err := h.db.CountAllPeople(req.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-type", jsonContentType)
+	json.NewEncoder(w).Encode(dto.FromPeopleCount(peopleCount))
+}
