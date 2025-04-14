@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/Tulkdan/go-rinha-backend/src/db"
+	"github.com/Tulkdan/go-rinha-backend/src/handler"
 )
 
 func NewHTTPServer(addr string, ctx context.Context, db *db.Queries) *http.Server {
-	server := NewPeopleRouter(db)
+	server := handler.NewPeopleRouter(db)
 
 	r := &http.ServeMux{}
 	r.HandleFunc("GET /pessoas/{id}", server.HandleGet)

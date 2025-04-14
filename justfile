@@ -1,5 +1,5 @@
 build:
-    go build -o bin/rinha
+    go build -o bin/rinha cmd/app/main.go
 
 run: build
     ./bin/rinha
