@@ -18,8 +18,8 @@ SELECT
     , stacks
 FROM people
 WHERE LOWER(name) LIKE '%' || $1 || '%'
-   OR LOWER(nickname) LIKE '%' || $2 || '%'
-   OR LOWER(stacks) LIKE '%' || $3 || '%';
+   OR LOWER(nickname) LIKE '%' || $1 || '%'
+   OR LOWER(ARRAY_TO_STRING(stacks, ',')) LIKE '%' || $1 || '%';
 
 -- name: CountAllPeople :one
 SELECT COUNT(*) as qtt

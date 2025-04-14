@@ -85,18 +85,12 @@ SELECT
     , stacks
 FROM people
 WHERE LOWER(name) LIKE '%' || $1 || '%'
-   OR LOWER(nickname) LIKE '%' || $2 || '%'
-   OR LOWER(stacks) LIKE '%' || $3 || '%'
+   OR LOWER(nickname) LIKE '%' || $1 || '%'
+   OR LOWER(ARRAY_TO_STRING(stacks, ',')) LIKE '%' || $1 || '%'
 `
 
-type SearchPersonParams struct {
-	Column1 pgtype.Text
-	Column2 pgtype.Text
-	Column3 pgtype.Text
-}
-
-func (q *Queries) SearchPerson(ctx context.Context, arg SearchPersonParams) ([]Person, error) {
-	rows, err := q.db.Query(ctx, searchPerson, arg.Column1, arg.Column2, arg.Column3)
+func (q *Queries) SearchPerson(ctx context.Context, dollar_1 pgtype.Text) ([]Person, error) {
+	rows, err := q.db.Query(ctx, searchPerson, dollar_1)
 	if err != nil {
 		return nil, err
 	}

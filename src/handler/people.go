@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Tulkdan/go-rinha-backend/src/db"
 	"github.com/Tulkdan/go-rinha-backend/src/domain"
@@ -61,4 +62,28 @@ func (h *httpServer) HandlePost(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-type", jsonContentType)
 	json.NewEncoder(w).Encode(dto.FromPerson(person))
+}
+
+func (h *httpServer) HandleSearch(w http.ResponseWriter, req *http.Request) {
+	t := req.URL.Query().Get("t")
+	if t == "" {
+		http.Error(w, "Missing search query param", http.StatusBadRequest)
+		return
+	}
+
+	query := strings.ToLower(t)
+	dbPeople, err := h.db.SearchPerson(req.Context(), pgtype.Text{String: query, Valid: true})
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, domain.ErrInsertPerson.Error(), http.StatusInternalServerError)
+	}
+
+	var people []*dto.PersonOutput
+	for _, p := range dbPeople {
+		person := domain.NewPersonFromDB(p)
+		people = append(people, dto.FromPerson(person))
+	}
+
+	w.Header().Set("Content-type", jsonContentType)
+	json.NewEncoder(w).Encode(people)
 }
